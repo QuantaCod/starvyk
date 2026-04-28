@@ -17,7 +17,7 @@ import Comments from "../components/ui/Comments";
 import RelatedContent from "../components/ui/RelatedContent";
 import styles from "./DatasetPage.module.css";
 
-export default function DatasetPage() {
+export default function DatasetsPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [dataset, setDataset] = useState(null);
@@ -120,21 +120,6 @@ export default function DatasetPage() {
               <RichTextDisplay html={dataset.body} />
             </div>
           </section>
-        )}
-
-        {dataset.chart_data && (
-          <details className={styles.rawDetails}>
-            <summary className={styles.rawSummary}>View raw JSON data</summary>
-            <pre className={styles.rawCode}>
-              {JSON.stringify(
-                typeof dataset.chart_data === "string"
-                  ? JSON.parse(dataset.chart_data)
-                  : dataset.chart_data,
-                null,
-                2,
-              )}
-            </pre>
-          </details>
         )}
 
         <Comments type="dataset" targetId={dataset.id} />
