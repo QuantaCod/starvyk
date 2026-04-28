@@ -1,167 +1,134 @@
-import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Database, Eye } from "lucide-react";
-import { format } from "date-fns";
-import {
-  getDatasetBySlug,
-  getRelatedDatasets,
-  incrementDatasetViews,
-} from "../lib/api";
-import ChartRenderer from "../components/charts/ChartRenderer";
-import ChartTypeSwitcher from "../components/charts/ChartTypeSwitcher";
-import LikeButton from "../components/ui/LikeButton";
-import TagBadge from "../components/ui/TagBadge";
-import SEO from "../components/ui/SEO";
-import RichTextDisplay from "../components/ui/RichTextDisplay";
-import Comments from "../components/ui/Comments";
-import RelatedContent from "../components/ui/RelatedContent";
-import styles from "./DatasetPage.module.css";
+import { useState, useEffect, useCallback } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Search, Database } from 'lucide-react'
+import { getDatasets, getAllTags } from '../lib/api'
+import DatasetCard from '../components/ui/DatasetCard'
+import TagBadge from '../components/ui/TagBadge'
+import SEO from '../components/ui/SEO'
+import { SkeletonGrid } from '../components/ui/Skeleton'
+import styles from './ListingPage.module.css'
+
+const PAGE_SIZE = 12
 
 export default function DatasetsPage() {
-  const { slug } = useParams();
-  const navigate = useNavigate();
-  const [dataset, setDataset] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [chartType, setChartType] = useState("bar");
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [datasets, setDatasets]         = useState([])
+  const [tags, setTags]                 = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [total, setTotal]               = useState(0)
+  const [page, setPage]                 = useState(0)
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    getDatasetBySlug(slug)
-      .then(async (data) => {
-        setDataset(data);
-        setChartType(data.chart_type || "bar");
-        incrementDatasetViews(data.id);
-        const rel = await getRelatedDatasets(data.id, data.tags || []);
-        setRelated(rel);
-      })
-      .catch(() => setError("Dataset not found"))
-      .finally(() => setLoading(false));
-  }, [slug]);
+  const search = searchParams.get('search') || ''
+  const tag    = searchParams.get('tag')    || ''
 
-  if (loading) return <LoadingSkeleton />;
-  if (error || !dataset) return <NotFound />;
-
-  let chartData = null;
-  try {
-    chartData =
-      typeof dataset.chart_data === "string"
-        ? JSON.parse(dataset.chart_data)
-        : dataset.chart_data;
-  } catch {
-    chartData = null;
+  const setParam = (key, val) => {
+    const p = new URLSearchParams(searchParams)
+    if (val) p.set(key, val); else p.delete(key)
+    setPage(0)
+    setSearchParams(p)
   }
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [data, allTags] = await Promise.all([
+        getDatasets({ search, tag, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+        getAllTags(),
+      ])
+      setDatasets(data)
+      setTags(allTags)
+      setTotal(data.length < PAGE_SIZE ? page * PAGE_SIZE + data.length : (page + 1) * PAGE_SIZE + 1)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }, [search, tag, page])
+
+  useEffect(() => { fetchData() }, [fetchData])
 
   return (
     <>
-      <SEO
-        title={dataset.title}
-        description={dataset.description}
-        url={`/dataset/${datasets.slug}`}
-        type="article"
-      />
+      <SEO title="Datasets" description="Explore all datasets with interactive charts and visualizations." url="/datasets" />
       <div className={styles.page}>
-        <Link to="/datasets" className={styles.back}>
-          <ArrowLeft size={14} /> Back to Datasets
+
+        {/* Back */}
+        <Link to="/" className={styles.backBtn}>
+          <ArrowLeft size={14} /> Back to Home
         </Link>
 
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <div className={styles.eyebrow}>
-              <Database size={12} />
-              <span>Dataset</span>
+        {/* Header */}
+        <div className={styles.pageHeader}>
+          <div className={styles.pageHeaderLeft}>
+            <div className={styles.pageIcon} style={{ '--icon-color': '#4dabf7' }}>
+              <Database size={20} strokeWidth={1.5} />
             </div>
-            <h1 className={styles.title}>{dataset.title}</h1>
-            <p className={styles.desc}>{dataset.description}</p>
+            <div>
+              <h1 className={styles.pageTitle}>Datasets</h1>
+              <p className={styles.pageSub}>
+                {loading ? 'Loading…' : `${datasets.length} result${datasets.length !== 1 ? 's' : ''}${search ? ` for "${search}"` : ''}${tag ? ` tagged "${tag}"` : ''}`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search + Tags */}
+        <div className={styles.controls}>
+          <div className={styles.searchWrap}>
+            <Search size={15} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              placeholder="Search datasets…"
+              value={search}
+              onChange={e => setParam('search', e.target.value)}
+            />
+            {search && (
+              <button className={styles.clearBtn} onClick={() => setParam('search', '')}>✕</button>
+            )}
+          </div>
+          {tags.length > 0 && (
             <div className={styles.tags}>
-              {(dataset.tags || []).map((tag) => (
-                <TagBadge key={tag} tag={tag} />
+              {tags.map(t => (
+                <TagBadge key={t} tag={t} active={tag === t} onClick={v => setParam('tag', tag === v ? '' : v)} />
               ))}
             </div>
-          </div>
-          <div className={styles.headerRight}>
-            <LikeButton
-              type="dataset"
-              targetId={dataset.id}
-              initialCount={dataset.likes_count || 0}
-              size="lg"
-            />
-            <div className={styles.metaGroup}>
-              <span className={styles.meta}>
-                <Calendar size={11} />
-                {format(new Date(dataset.created_at), "MMM d, yyyy")}
-              </span>
-              <span className={styles.meta}>
-                <Eye size={11} />
-                {(dataset.views_count || 0).toLocaleString()} views
-              </span>
-            </div>
-          </div>
-        </header>
-
-        <section>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.sectionLabel}>Visualization</h2>
-            <ChartTypeSwitcher value={chartType} onChange={setChartType} />
-          </div>
-          <div className={styles.chartCard}>
-            <ChartRenderer data={chartData} chartType={chartType} />
-          </div>
-        </section>
-
-        {dataset.body && (
-          <section>
-            <h2 className={styles.sectionLabel} style={{ marginBottom: 14 }}>
-              About this Dataset
-            </h2>
-            <div className={styles.bodyCard}>
-              <RichTextDisplay html={dataset.body} />
-            </div>
-          </section>
-        )}
-
-        <Comments type="dataset" targetId={dataset.id} />
-
-        {related.length > 0 && (
-          <RelatedContent
-            items={related}
-            type="dataset"
-            title="More Datasets"
-          />
-        )}
-
-        <div className={styles.bottomNav}>
-          <Link to="/datasets" className={styles.back}>
-            <ArrowLeft size={14} /> Back to Datasets
-          </Link>
+          )}
         </div>
+
+        {/* Grid */}
+        {loading ? (
+          <SkeletonGrid count={8} />
+        ) : datasets.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No datasets found.</p>
+            <button className={styles.clearFilters} onClick={() => { setParam('search',''); setParam('tag','') }}>
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className={styles.grid}>
+            {datasets.map((d, i) => <DatasetCard key={d.id} dataset={d} index={i} />)}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && datasets.length === PAGE_SIZE && (
+          <div className={styles.pagination}>
+            {page > 0 && (
+              <button className={styles.pageBtn} onClick={() => setPage(p => p - 1)}>← Previous</button>
+            )}
+            <span className={styles.pageInfo}>Page {page + 1}</span>
+            <button className={styles.pageBtn} onClick={() => setPage(p => p + 1)}>Next →</button>
+          </div>
+        )}
+        {!loading && page > 0 && datasets.length < PAGE_SIZE && (
+          <div className={styles.pagination}>
+            <button className={styles.pageBtn} onClick={() => setPage(p => p - 1)}>← Previous</button>
+            <span className={styles.pageInfo}>Page {page + 1}</span>
+          </div>
+        )}
+
       </div>
     </>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className={styles.page}>
-      <div className={`skeleton ${styles.skBack}`} />
-      <div className={`skeleton ${styles.skTitle}`} />
-      <div className={`skeleton ${styles.skDesc}`} />
-      <div className={`skeleton ${styles.skChart}`} />
-    </div>
-  );
-}
-
-function NotFound() {
-  return (
-    <div className={styles.page}>
-      <div className={styles.notFound}>
-        <h2>Dataset not found</h2>
-        <Link to="/datasets" className={styles.back}>
-          <ArrowLeft size={14} /> Back to Datasets
-        </Link>
-      </div>
-    </div>
-  );
+  )
 }
