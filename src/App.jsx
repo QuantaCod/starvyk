@@ -15,7 +15,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="datasets" element={<DatasetsPage />} />
         <Route path="articles" element={<ArticlesPage />} />
-        <Route path="datasets/:slug" element={<DatasetPage />} />
+        <Route path="dataset/:slug" element={<DatasetPage />} />
         <Route path="article/:slug" element={<ArticlePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
