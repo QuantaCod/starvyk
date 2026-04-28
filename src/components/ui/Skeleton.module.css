@@ -1,0 +1,23 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.icon { width: 40px; height: 40px; border-radius: var(--radius); }
+.body { display: flex; flex-direction: column; gap: 8px; }
+.title { height: 18px; width: 70%; border-radius: 4px; }
+.desc { height: 12px; width: 100%; border-radius: 4px; }
+.desc2 { height: 12px; width: 80%; border-radius: 4px; }
+.footer { display: flex; gap: 6px; }
+.tag { height: 20px; width: 60px; border-radius: 100px; }
