@@ -36,15 +36,15 @@ export default function HomePage() {
           <div className={styles.heroInner}>
             <div className={styles.heroEyebrow}>
               <TrendingUp size={12} />
-              <span>Open Data Platform</span>
+              <span>Data Made Beautiful</span>
             </div>
             <h1 className={styles.heroTitle}>
-              Data made<br />
-              <span className={styles.heroAccent}>beautiful</span>
+              Analyze. Visualize<br />
+              <span className={styles.heroAccent}>Understand</span>
             </h1>
             <p className={styles.heroDesc}>
               Explore curated datasets and insightful articles.
-              Interactive visualizations, real insights — no account needed.
+              Interactive visualizations, real insights, All in one place.
             </p>
             <form className={styles.searchWrap} onSubmit={handleSearch}>
               <Search size={16} className={styles.searchIcon} />

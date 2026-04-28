@@ -94,24 +94,6 @@ export default function DatasetPage() {
           </div>
         </section>
 
-        {/* Raw data
-        {dataset.chart_data && (
-          <section className={styles.rawSection}>
-            <details className={styles.rawDetails}>
-              <summary className={styles.rawSummary}>View raw JSON data</summary>
-              <pre className={styles.rawCode}>
-                {JSON.stringify(
-                  typeof dataset.chart_data === 'string'
-                    ? JSON.parse(dataset.chart_data)
-                    : dataset.chart_data,
-                  null, 2
-                )}
-              </pre>
-            </details>
-          </section>
-        )} */}
-
-        {/* Bottom back */}
         <div className={styles.bottomNav}>
           <Link to="/datasets" className={styles.back}>
             <ArrowLeft size={14} /> Back to Datasets
