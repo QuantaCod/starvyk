@@ -122,21 +122,6 @@ export default function DatasetPage() {
           </section>
         )}
 
-        {dataset.chart_data && (
-          <details className={styles.rawDetails}>
-            <summary className={styles.rawSummary}>View raw JSON data</summary>
-            <pre className={styles.rawCode}>
-              {JSON.stringify(
-                typeof dataset.chart_data === "string"
-                  ? JSON.parse(dataset.chart_data)
-                  : dataset.chart_data,
-                null,
-                2,
-              )}
-            </pre>
-          </details>
-        )}
-
         <Comments type="dataset" targetId={dataset.id} />
 
         {related.length > 0 && (

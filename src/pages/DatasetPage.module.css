@@ -37,10 +37,6 @@
 .chartCard { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; }
 .bodyCard { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; }
 
-/* .rawSummary { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 6px 0; transition: color var(--transition); }
-.rawSummary:hover { color: var(--text-primary); }
-.rawCode { margin-top: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); overflow-x: auto; line-height: 1.6; max-height: 380px; overflow-y: auto; } */
-
 .bottomNav { padding-top: 8px; border-top: 1px solid var(--border-subtle); }
 .skBack  { height: 28px; width: 130px; border-radius: var(--radius); }
 .skTitle { height: 36px; width: 65%; border-radius: 4px; }
