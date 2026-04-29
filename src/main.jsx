@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import './styles/globals.css'
+import './styles/responsive.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
