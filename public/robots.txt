@@ -24,3 +24,5 @@ Allow: /
 
 User-agent: Discordbot
 Allow: /
+
+Sitemap: https://starvyk.vercel.app/sitemap.xml
