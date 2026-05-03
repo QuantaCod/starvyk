@@ -60,3 +60,62 @@
 .content ol { list-style: decimal; padding-left: 24px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px; }
 .content li { line-height: 1.7; }
 .content hr { border: none; border-top: 1px solid var(--border-subtle); margin: 32px 0; }
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+}
+
+.content th,
+.content td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.content th {
+  background: var(--bg-elevated);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.content td {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+}
+
+.content tr:nth-child(even) td {
+  background: var(--bg-card);
+}
+
+.content table caption {
+  caption-side: bottom;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* TinyMCE specific table styles */
+.content table[border="1"] {
+  border: 1px solid var(--border);
+}
+
+.content table[cellpadding],
+.content table[cellspacing] {
+  border-collapse: collapse;
+}
+
+.content table td[style*="border"],
+.content table th[style*="border"] {
+  border: 1px solid var(--border) !important;
+}
+
+/* Handle TinyMCE's table resizing handles */
+.content table .mce-resize-bar {
+  display: none;
+}

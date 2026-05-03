@@ -12,7 +12,8 @@ import {
   Heading2, Heading3, List, ListOrdered,
   Quote, Code, Link as LinkIcon, Link2Off,
   Minus, Undo, Redo, AlignLeft, AlignCenter,
-  AlignRight, Type, Table as TableIcon
+  AlignRight, Type, Table as TableIcon,
+  Plus, Minus as MinusIcon, Columns, Rows
 } from 'lucide-react'
 import { useCallback } from 'react'
 import styles from './RichTextEditor.module.css'
@@ -37,6 +38,9 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
       }),
       Table.configure({
         resizable: true,
+        HTMLAttributes: {
+          class: 'rte-table',
+        },
       }),
       TableRow,
       TableHeader,
@@ -129,6 +133,19 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
           <span className={styles.textBtn}>{ }</span>
         </Btn>
         <Btn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Insert table"><TableIcon size={13} /></Btn>
+
+        {/* Table manipulation buttons - only show when table is active */}
+        {editor.isActive('table') && (
+          <>
+            <Btn onClick={() => editor.chain().focus().addColumnBefore().run()} title="Add column before"><Columns size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Add column after"><Plus size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().deleteColumn().run()} title="Delete column"><MinusIcon size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().addRowBefore().run()} title="Add row before"><Rows size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().addRowAfter().run()} title="Add row after"><Plus size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().deleteRow().run()} title="Delete row"><MinusIcon size={13} /></Btn>
+            <Btn onClick={() => editor.chain().focus().deleteTable().run()} title="Delete table"><MinusIcon size={13} /></Btn>
+          </>
+        )}
 
         <Divider />
 

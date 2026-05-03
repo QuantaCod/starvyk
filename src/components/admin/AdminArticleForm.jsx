@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import styles from './AdminForm.module.css'
 import articleStyles from '../../pages/ArticlePage.module.css'
 import RichTextDisplay from '../ui/RichTextDisplay'
-import RichTextEditor from '../ui/RichTextEditor'
+import RichTextEditor from '../ui/RichTextEditorTinyMCE'
 
 export default function AdminArticleForm() {
   const { id } = useParams()

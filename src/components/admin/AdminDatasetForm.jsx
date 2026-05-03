@@ -5,7 +5,7 @@ import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import { createDataset, updateDataset, slugify } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
-import RichTextEditor from '../ui/RichTextEditor'
+import RichTextEditor from '../ui/RichTextEditorTinyMCE'
 import styles from './AdminForm.module.css'
 
 const CHART_TYPES = ['bar', 'line', 'pie', 'table']
