@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Eye, Edit3 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
 import { createArticle, updateArticle, slugify } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import styles from './AdminForm.module.css'
 import articleStyles from '../../pages/ArticlePage.module.css'
+import RichTextDisplay from '../ui/RichTextDisplay'
 import RichTextEditor from '../ui/RichTextEditor'
 
 export default function AdminArticleForm() {
@@ -216,24 +216,7 @@ export default function AdminArticleForm() {
               background: 'var(--bg-elevated)', borderRadius: 'var(--radius)',
               border: '1px solid var(--border)',
             }}>
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => <h1 className={articleStyles.h1}>{children}</h1>,
-                  h2: ({ children }) => <h2 className={articleStyles.h2}>{children}</h2>,
-                  h3: ({ children }) => <h3 className={articleStyles.h3}>{children}</h3>,
-                  p: ({ children }) => <p className={articleStyles.p}>{children}</p>,
-                  code: ({ inline, children }) =>
-                    inline
-                      ? <code className={articleStyles.inlineCode}>{children}</code>
-                      : <pre className={articleStyles.codeBlock}><code>{children}</code></pre>,
-                  blockquote: ({ children }) => <blockquote className={articleStyles.blockquote}>{children}</blockquote>,
-                  ul: ({ children }) => <ul className={articleStyles.ul}>{children}</ul>,
-                  ol: ({ children }) => <ol className={articleStyles.ol}>{children}</ol>,
-                  li: ({ children }) => <li className={articleStyles.li}>{children}</li>,
-                }}
-              >
-                {form.content}
-              </ReactMarkdown>
+              <RichTextDisplay html={form.content} />
             </div>
           ) : (
             <div className={styles.formCard}>

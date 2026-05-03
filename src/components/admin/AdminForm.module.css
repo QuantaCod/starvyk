@@ -320,6 +320,76 @@
   gap: 16px;
 }
 
+.chartTableWrap {
+  overflow-x: auto;
+}
+
+.chartTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.chartTable th,
+.chartTable td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  background: var(--bg-card);
+}
+
+.chartTable th {
+  background: var(--bg-elevated);
+}
+
+.chartTableInput,
+.chartHeaderInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.chartHeaderInput {
+  min-width: 140px;
+}
+
+.chartTableInput {
+  min-width: 80px;
+}
+
+.chartActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.addDatasetBtn,
+.removeDatasetBtn {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.addDatasetBtn:hover,
+.removeDatasetBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.removeDatasetBtn {
+  min-width: 90px;
+}
+
 .yearEntryHeader {
   display: flex;
   align-items: center;

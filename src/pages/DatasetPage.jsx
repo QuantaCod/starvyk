@@ -46,6 +46,25 @@ export default function DatasetPage() {
       .finally(() => setLoading(false))
   }, [slug])
 
+  useEffect(() => {
+    if (!dataset) return
+    const years = dataset.years_data && Object.keys(dataset.years_data).length > 0
+      ? Object.keys(dataset.years_data)
+      : []
+
+    if (years.length === 0) {
+      setChartType(dataset.chart_type || 'bar')
+      return
+    }
+
+    const entry = selectedYear ? dataset.years_data[selectedYear] : null
+    if (entry?.chart_type) {
+      setChartType(entry.chart_type)
+    } else {
+      setChartType(dataset.chart_type || 'bar')
+    }
+  }, [dataset, selectedYear])
+
   if (loading) return <LoadingSkeleton />
   if (error || !dataset) return <NotFound />
 
@@ -59,7 +78,9 @@ export default function DatasetPage() {
   // If a year is selected use that year's data, else use the base data
   let activeChartData = null
   let activeTitle     = dataset.title
+  let activeDesc      = dataset.description
   let activeBody      = dataset.body || null
+  let activeChartType = chartType
 
   if (hasYears && selectedYear && dataset.years_data[selectedYear]) {
     const yearEntry = dataset.years_data[selectedYear]
@@ -68,10 +89,12 @@ export default function DatasetPage() {
         ? JSON.parse(yearEntry.chart_data)
         : yearEntry.chart_data
     } catch { activeChartData = null }
-    // Each year can have its own body; fall back to main body
+
     if (yearEntry.body) activeBody = yearEntry.body
-    // Optionally prefix title with year
-    activeTitle = `${dataset.title} — ${selectedYear}`
+    if (yearEntry.title) activeTitle = yearEntry.title
+    else activeTitle = `${dataset.title} — ${selectedYear}`
+    if (yearEntry.description) activeDesc = yearEntry.description
+    if (yearEntry.chart_type) activeChartType = yearEntry.chart_type
   } else {
     try {
       activeChartData = typeof dataset.chart_data === 'string'
@@ -84,7 +107,7 @@ export default function DatasetPage() {
     <>
       <SEO
         title={activeTitle}
-        description={dataset.description}
+        description={activeDesc}
         url={`/dataset/${dataset.slug}`}
         type="article"
       />
@@ -104,8 +127,8 @@ export default function DatasetPage() {
                 <span className={styles.yearLabel}>{selectedYear}</span>
               )}
             </div>
-            <h1 className={styles.title}>{dataset.title}</h1>
-            <p className={styles.desc}>{dataset.description}</p>
+            <h1 className={styles.title}>{activeTitle}</h1>
+            <p className={styles.desc}>{activeDesc}</p>
             <div className={styles.tags}>
               {(dataset.tags || []).map(tag => <TagBadge key={tag} tag={tag} />)}
             </div>

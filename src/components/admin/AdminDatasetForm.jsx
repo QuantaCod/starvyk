@@ -20,9 +20,42 @@ const SAMPLE_JSON = `{
 
 const CURRENT_YEAR = new Date().getFullYear()
 
+function parseChartData(jsonString) {
+  try {
+    const parsed = JSON.parse(jsonString)
+    return {
+      labels: Array.isArray(parsed.labels) ? parsed.labels.map(String) : [],
+      datasets: Array.isArray(parsed.datasets)
+        ? parsed.datasets.map(ds => ({
+            label: String(ds.label || ''),
+            data: Array.isArray(ds.data)
+              ? ds.data.map(value => Number(value) || 0)
+              : [],
+          }))
+        : [],
+    }
+  } catch {
+    return { labels: [], datasets: [] }
+  }
+}
+
+function formatNumberArray(values) {
+  return values.map(v => (v === null || v === undefined ? '' : String(v))).join(', ')
+}
+
 // One year entry in the multi-year editor
 function YearEntry({ entry, index, onUpdate, onRemove, isOnly }) {
   const set = (key, val) => onUpdate(index, { ...entry, [key]: val })
+  const [chartData, setChartData] = useState(parseChartData(entry.chart_data))
+
+  useEffect(() => {
+    setChartData(parseChartData(entry.chart_data))
+  }, [entry.chart_data])
+
+  const updateChartData = (nextData) => {
+    setChartData(nextData)
+    set('chart_data', JSON.stringify(nextData, null, 2))
+  }
 
   const handleCSV = (e) => {
     const file = e.target.files[0]
@@ -41,7 +74,7 @@ function YearEntry({ entry, index, onUpdate, onRemove, isOnly }) {
             data:  rows.map(r => parseFloat(r[key]) || 0),
           })),
         }
-        set('chart_data', JSON.stringify(chartData, null, 2))
+        updateChartData(chartData)
         toast.success('CSV imported')
       },
       error: () => toast.error('Failed to parse CSV'),
@@ -82,6 +115,40 @@ function YearEntry({ entry, index, onUpdate, onRemove, isOnly }) {
         />
       </div>
 
+      <div className={styles.row}>
+        <div className={styles.field}>
+          <label className={styles.label}>Entry Title</label>
+          <input
+            className={styles.input}
+            value={entry.title}
+            onChange={e => set('title', e.target.value)}
+            placeholder="Optional year-specific title"
+          />
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Chart Type</label>
+          <select
+            className={styles.select}
+            value={entry.chart_type}
+            onChange={e => set('chart_type', e.target.value)}
+          >
+            {CHART_TYPES.map(type => (
+              <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)} Chart</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Short Description <span className={styles.labelHint}>(optional)</span></label>
+        <textarea
+          className={styles.textarea}
+          value={entry.description}
+          onChange={e => set('description', e.target.value)}
+          placeholder="Optional short description for this year"
+        />
+      </div>
+
       {/* CSV import for this year */}
       <div className={styles.field}>
         <label className={styles.label}>Import CSV <span className={styles.labelHint}>(optional)</span></label>
@@ -90,6 +157,103 @@ function YearEntry({ entry, index, onUpdate, onRemove, isOnly }) {
           <p className={styles.fileZoneText}>Click to upload CSV — auto-converts to JSON</p>
           <input type="file" accept=".csv" onChange={handleCSV} style={{ display: 'none' }} />
         </label>
+      </div>
+
+      {/* Structured chart data editor */}
+      <div className={styles.field}>
+        <label className={styles.label}>Chart Table</label>
+        <div className={styles.chartTableWrap}>
+          <table className={styles.chartTable}>
+            <thead>
+              <tr>
+                <th>Series</th>
+                {chartData.labels.map((label, labelIndex) => (
+                  <th key={labelIndex}>
+                    <input
+                      className={styles.chartHeaderInput}
+                      value={label}
+                      onChange={e => updateChartData({
+                        ...chartData,
+                        labels: chartData.labels.map((lbl, idx) => idx === labelIndex ? e.target.value : lbl),
+                      })}
+                      placeholder={`Label ${labelIndex + 1}`}
+                    />
+                  </th>
+                ))}
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.datasets.map((dataset, datasetIndex) => (
+                <tr key={datasetIndex}>
+                  <td>
+                    <input
+                      className={styles.chartTableInput}
+                      value={dataset.label}
+                      onChange={e => updateChartData({
+                        ...chartData,
+                        datasets: chartData.datasets.map((ds, idx) => idx === datasetIndex ? { ...ds, label: e.target.value } : ds),
+                      })}
+                      placeholder={`Series ${datasetIndex + 1}`}
+                    />
+                  </td>
+                  {chartData.labels.map((_, labelIndex) => (
+                    <td key={labelIndex}>
+                      <input
+                        className={styles.chartTableInput}
+                        type="number"
+                        value={dataset.data[labelIndex] ?? ''}
+                        onChange={e => updateChartData({
+                          ...chartData,
+                          datasets: chartData.datasets.map((ds, idx) => idx === datasetIndex ? {
+                            ...ds,
+                            data: ds.data.map((value, dataIndex) => dataIndex === labelIndex ? Number(e.target.value) || 0 : value),
+                          } : ds),
+                        })}
+                        placeholder="0"
+                      />
+                    </td>
+                  ))}
+                  <td>
+                    <button
+                      type="button"
+                      className={styles.removeDatasetBtn}
+                      onClick={() => updateChartData({
+                        ...chartData,
+                        datasets: chartData.datasets.filter((_, idx) => idx !== datasetIndex),
+                      })}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.chartActions}>
+          <button
+            type="button"
+            className={styles.addDatasetBtn}
+            onClick={() => updateChartData({
+              ...chartData,
+              datasets: [...chartData.datasets, { label: `Series ${chartData.datasets.length + 1}`, data: Array(chartData.labels.length).fill(0) }],
+            })}
+          >
+            Add series
+          </button>
+          <button
+            type="button"
+            className={styles.addDatasetBtn}
+            onClick={() => updateChartData({
+              ...chartData,
+              labels: [...chartData.labels, `Label ${chartData.labels.length + 1}`],
+              datasets: chartData.datasets.map(ds => ({ ...ds, data: [...ds.data, 0] })),
+            })}
+          >
+            Add label
+          </button>
+        </div>
       </div>
 
       {/* Chart data JSON */}
@@ -143,7 +307,14 @@ export default function AdminDatasetForm() {
 
   // Multi-year entries: [{ year, chart_data, body }, ...]
   const [yearEntries, setYearEntries] = useState([
-    { year: CURRENT_YEAR.toString(), chart_data: SAMPLE_JSON, body: '' }
+    {
+      year: CURRENT_YEAR.toString(),
+      title: '',
+      description: '',
+      chart_type: 'bar',
+      chart_data: SAMPLE_JSON,
+      body: '',
+    }
   ])
 
   useEffect(() => {
@@ -164,6 +335,9 @@ export default function AdminDatasetForm() {
             .sort(([a], [b]) => b - a)
             .map(([year, val]) => ({
               year,
+              title: val.title || '',
+              description: val.description || '',
+              chart_type: val.chart_type || data.chart_type || 'bar',
               chart_data: typeof val.chart_data === 'string'
                 ? val.chart_data
                 : JSON.stringify(val.chart_data, null, 2),
@@ -174,6 +348,9 @@ export default function AdminDatasetForm() {
           // Legacy single dataset — migrate to year entry
           setYearEntries([{
             year: data.year?.toString() || CURRENT_YEAR.toString(),
+            title: '',
+            description: '',
+            chart_type: data.chart_type || 'bar',
             chart_data: typeof data.chart_data === 'string'
               ? data.chart_data
               : JSON.stringify(data.chart_data, null, 2),
@@ -237,6 +414,9 @@ export default function AdminDatasetForm() {
       yearEntries.forEach(entry => {
         if (entry.year) {
           years_data[entry.year] = {
+            title: entry.title || null,
+            description: entry.description || null,
+            chart_type: entry.chart_type || form.chart_type,
             chart_data: JSON.parse(entry.chart_data),
             body: entry.body || '',
           }

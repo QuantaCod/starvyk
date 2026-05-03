@@ -3,12 +3,16 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Table } from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableHeader from '@tiptap/extension-table-header'
+import TableCell from '@tiptap/extension-table-cell'
 import {
   Bold, Italic, UnderlineIcon, Strikethrough,
   Heading2, Heading3, List, ListOrdered,
   Quote, Code, Link as LinkIcon, Link2Off,
   Minus, Undo, Redo, AlignLeft, AlignCenter,
-  AlignRight, Type
+  AlignRight, Type, Table as TableIcon
 } from 'lucide-react'
 import { useCallback } from 'react'
 import styles from './RichTextEditor.module.css'
@@ -31,6 +35,12 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
           class: 'rte-link',
         },
       }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       Placeholder.configure({ placeholder }),
     ],
     content: value || '',
@@ -118,6 +128,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
         <Btn onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="Code block">
           <span className={styles.textBtn}>{ }</span>
         </Btn>
+        <Btn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Insert table"><TableIcon size={13} /></Btn>
 
         <Divider />
 

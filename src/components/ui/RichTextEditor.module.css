@@ -216,6 +216,28 @@
   margin: 24px 0;
 }
 
+.editorBody table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+}
+
+.editorBody th,
+.editorBody td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.editorBody th {
+  background: var(--bg-card);
+  font-weight: 700;
+}
+
+.editorBody td {
+  background: var(--bg-elevated);
+}
+
 /* Footer bar */
 .footer {
   display: flex;
