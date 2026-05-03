@@ -127,10 +127,9 @@ export default function AdminArticleForm() {
 
           <div className={styles.field}>
             <label className={styles.label}>Description / Excerpt</label>
-            <textarea
-              className={styles.textarea}
+            <RichTextEditor
               value={form.description}
-              onChange={e => set('description', e.target.value)}
+              onChange={val => set('description', val)}
               placeholder="A brief summary shown in cards and SEO meta..."
             />
           </div>

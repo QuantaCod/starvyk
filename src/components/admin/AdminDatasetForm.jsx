@@ -484,10 +484,9 @@ export default function AdminDatasetForm() {
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Short Description <span className={styles.labelHint}>(shown in cards)</span></label>
-            <textarea
-              className={styles.textarea}
+            <RichTextEditor
               value={form.description}
-              onChange={e => set('description', e.target.value)}
+              onChange={val => set('description', val)}
               placeholder="Brief summary shown on listing cards..."
             />
           </div>

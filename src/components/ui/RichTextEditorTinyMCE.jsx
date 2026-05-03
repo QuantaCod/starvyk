@@ -1,42 +1,9 @@
 import { Editor } from '@tinymce/tinymce-react'
 import { useRef } from 'react'
 import 'tinymce/tinymce'
-import 'tinymce/icons/default'
 import 'tinymce/themes/silver'
 import 'tinymce/skins/ui/oxide/skin.min.css'
 import 'tinymce/skins/content/default/content.min.css'
-import 'tinymce/plugins/advlist'
-import 'tinymce/plugins/autolink'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/link'
-import 'tinymce/plugins/image'
-import 'tinymce/plugins/charmap'
-import 'tinymce/plugins/preview'
-import 'tinymce/plugins/anchor'
-import 'tinymce/plugins/searchreplace'
-import 'tinymce/plugins/visualblocks'
-import 'tinymce/plugins/code'
-import 'tinymce/plugins/fullscreen'
-import 'tinymce/plugins/insertdatetime'
-import 'tinymce/plugins/media'
-import 'tinymce/plugins/table'
-import 'tinymce/plugins/help'
-import 'tinymce/plugins/wordcount'
-import 'tinymce/plugins/paste'
-import 'tinymce/plugins/directionality'
-import 'tinymce/plugins/visualchars'
-import 'tinymce/plugins/template'
-import 'tinymce/plugins/codesample'
-import 'tinymce/plugins/hr'
-import 'tinymce/plugins/pagebreak'
-import 'tinymce/plugins/nonbreaking'
-import 'tinymce/plugins/toc'
-import 'tinymce/plugins/imagetools'
-import 'tinymce/plugins/textpattern'
-import 'tinymce/plugins/noneditable'
-import 'tinymce/plugins/quickbars'
-import 'tinymce/plugins/emoticons'
-import 'tinymce/plugins/advtable'
 import styles from './RichTextEditorTinyMCE.module.css'
 
 export default function RichTextEditorTinyMCE({ value, onChange, placeholder = 'Start writing...' }) {
@@ -53,15 +20,15 @@ export default function RichTextEditorTinyMCE({ value, onChange, placeholder = '
         value={value}
         onEditorChange={handleEditorChange}
         init={{
-          height: 400,
+          base_url: '/tinymce',
+          suffix: '.min',          license_key: 'gpl',          height: 400,
           menubar: false,
           plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste',
-            'directionality', 'visualchars', 'template', 'codesample', 'hr',
-            'pagebreak', 'nonbreaking', 'toc', 'imagetools', 'textpattern',
-            'noneditable', 'charmap', 'quickbars', 'emoticons', 'advtable'
+            'insertdatetime', 'media', 'table', 'help', 'wordcount',
+            'directionality', 'visualchars', 'codesample',
+            'pagebreak', 'nonbreaking', 'quickbars', 'emoticons'
           ],
           toolbar1: 'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
           toolbar2: 'table | link image media | code codesample | preview fullscreen | help',
@@ -75,21 +42,6 @@ export default function RichTextEditorTinyMCE({ value, onChange, placeholder = '
             cellspacing: '0',
             role: 'presentation',
             style: 'border-collapse: collapse; width: 100%;'
-          },
-          table_default_styles: {
-            width: '100%',
-            'border-collapse': 'collapse'
-          },
-          table_responsive_width: true,
-          table_sizing_mode: 'responsive',
-          paste_data_images: true,
-          paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,h4,h5,h6,p,ol,ul,li,a[href],span,color,font-size,font-color,font-family,mark,table,tr,td,th,tbody,thead,tfoot",
-          paste_retain_style_properties: "all",
-          paste_merge_formats: true,
-          smart_paste: true,
-          paste_postprocess: (plugin, args) => {
-            // Clean up pasted content
-            args.node.innerHTML = args.node.innerHTML.replace(/mso-[^;]+;?/gi, '')
           },
           content_style: `
             body {
@@ -130,7 +82,7 @@ export default function RichTextEditorTinyMCE({ value, onChange, placeholder = '
           placeholder: placeholder,
           branding: false,
           promotion: false,
-          contextmenu: 'link image table configurepermanentpen',
+          contextmenu: 'link image table',
           quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
           quickbars_insert_toolbar: 'quickimage quicktable',
           toolbar_mode: 'sliding',
@@ -143,10 +95,6 @@ export default function RichTextEditorTinyMCE({ value, onChange, placeholder = '
           table_header_type: 'sectionCells',
           table_resize_bars: true,
           object_resizing: 'table',
-          table_advtab: true,
-          table_cell_advtab: true,
-          table_row_advtab: true,
-          advtable_value_series: true,
           table_use_colgroups: false
         }}
       />
