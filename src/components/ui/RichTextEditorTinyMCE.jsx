@@ -1,5 +1,42 @@
 import { Editor } from '@tinymce/tinymce-react'
 import { useRef } from 'react'
+import 'tinymce/tinymce'
+import 'tinymce/icons/default'
+import 'tinymce/themes/silver'
+import 'tinymce/skins/ui/oxide/skin.min.css'
+import 'tinymce/skins/content/default/content.min.css'
+import 'tinymce/plugins/advlist'
+import 'tinymce/plugins/autolink'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/image'
+import 'tinymce/plugins/charmap'
+import 'tinymce/plugins/preview'
+import 'tinymce/plugins/anchor'
+import 'tinymce/plugins/searchreplace'
+import 'tinymce/plugins/visualblocks'
+import 'tinymce/plugins/code'
+import 'tinymce/plugins/fullscreen'
+import 'tinymce/plugins/insertdatetime'
+import 'tinymce/plugins/media'
+import 'tinymce/plugins/table'
+import 'tinymce/plugins/help'
+import 'tinymce/plugins/wordcount'
+import 'tinymce/plugins/paste'
+import 'tinymce/plugins/directionality'
+import 'tinymce/plugins/visualchars'
+import 'tinymce/plugins/template'
+import 'tinymce/plugins/codesample'
+import 'tinymce/plugins/hr'
+import 'tinymce/plugins/pagebreak'
+import 'tinymce/plugins/nonbreaking'
+import 'tinymce/plugins/toc'
+import 'tinymce/plugins/imagetools'
+import 'tinymce/plugins/textpattern'
+import 'tinymce/plugins/noneditable'
+import 'tinymce/plugins/quickbars'
+import 'tinymce/plugins/emoticons'
+import 'tinymce/plugins/advtable'
 import styles from './RichTextEditorTinyMCE.module.css'
 
 export default function RichTextEditorTinyMCE({ value, onChange, placeholder = 'Start writing...' }) {
@@ -12,7 +49,6 @@ export default function RichTextEditorTinyMCE({ value, onChange, placeholder = '
   return (
     <div className={styles.editorContainer}>
       <Editor
-        apiKey="no-api-key" // Using TinyMCE free version
         onInit={(evt, editor) => editorRef.current = editor}
         value={value}
         onEditorChange={handleEditorChange}
