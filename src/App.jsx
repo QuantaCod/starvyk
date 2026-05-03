@@ -7,7 +7,7 @@ import DatasetPage from './pages/DatasetPage'
 import ArticlePage from './pages/ArticlePage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
-import { useBackButton } from './hooks/useBackButton'
+import { useBackButton } from './hooks/useBackButton.js'
 
 function PublicApp() {
   useBackButton()
