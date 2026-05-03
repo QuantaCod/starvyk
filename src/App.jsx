@@ -7,8 +7,10 @@ import DatasetPage from './pages/DatasetPage'
 import ArticlePage from './pages/ArticlePage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
+import { useBackButton } from './hooks/useBackButton'
 
-export default function App() {
+function PublicApp() {
+  useBackButton()
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
@@ -19,7 +21,15 @@ export default function App() {
         <Route path="article/:slug" element={<ArticlePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
       <Route path="/admin/*" element={<AdminPage />} />
+      <Route path="/*" element={<PublicApp />} />
     </Routes>
   )
 }

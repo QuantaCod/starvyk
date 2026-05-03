@@ -1,7 +1,8 @@
 .wrapper {
   position: relative;
-  height: 360px;
+  height: 340px;
   width: 100%;
+  min-width: 0;
 }
 
 .empty {
@@ -16,12 +17,14 @@
   overflow-x: auto;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  min-width: 300px;
 }
 
 .table th {
@@ -35,6 +38,11 @@
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
+  white-space: nowrap;
+}
+
+.pctHead {
+  color: var(--accent) !important;
 }
 
 .table td {
@@ -43,12 +51,22 @@
   border-bottom: 1px solid var(--border-subtle);
   font-family: var(--font-mono);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .table tr:last-child td { border-bottom: none; }
-.table tr:hover td { background: var(--bg-elevated); }
+.table tr:hover td { background: var(--bg-elevated); color: var(--text-primary); }
 
 .labelCell {
   color: var(--text-primary) !important;
   font-weight: 500;
+}
+
+.pctCell {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .wrapper { height: 240px; }
 }

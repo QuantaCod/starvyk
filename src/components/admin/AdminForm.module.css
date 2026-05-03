@@ -267,3 +267,101 @@
 @media (max-width: 640px) {
   .row { grid-template-columns: 1fr; }
 }
+
+/* Year entries in dataset form */
+.yearsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.yearsSub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.addYearBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(232, 255, 71, 0.25);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  min-height: 38px;
+}
+.addYearBtn:hover { background: var(--accent); color: #0a0a0a; }
+
+.yearEntriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.yearEntry {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yearEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.yearEntryTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.yearBadge {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(232, 255, 71, 0.2);
+  border-radius: var(--radius);
+  padding: 3px 10px;
+}
+
+.yearEntryLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.removeYearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.removeYearBtn:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }

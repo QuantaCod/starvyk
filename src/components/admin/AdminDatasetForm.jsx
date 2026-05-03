@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { ArrowLeft, Upload, Plus, Trash2 } from 'lucide-react'
 import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import { createDataset, updateDataset, slugify } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
-import styles from './AdminForm.module.css'
 import RichTextEditor from '../ui/RichTextEditor'
+import styles from './AdminForm.module.css'
 
 const CHART_TYPES = ['bar', 'line', 'pie', 'table']
 
@@ -18,38 +18,168 @@ const SAMPLE_JSON = `{
   }]
 }`
 
-export default function AdminDatasetForm() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const isEdit = !!id
+const CURRENT_YEAR = new Date().getFullYear()
 
-  const [loading, setLoading] = useState(false)
+// One year entry in the multi-year editor
+function YearEntry({ entry, index, onUpdate, onRemove, isOnly }) {
+  const set = (key, val) => onUpdate(index, { ...entry, [key]: val })
+
+  const handleCSV = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    Papa.parse(file, {
+      header: true,
+      complete: (results) => {
+        const rows     = results.data.filter(r => Object.values(r).some(Boolean))
+        const headers  = results.meta.fields || []
+        const labelKey = headers[0]
+        const dataKeys = headers.slice(1)
+        const chartData = {
+          labels: rows.map(r => r[labelKey]),
+          datasets: dataKeys.map(key => ({
+            label: key,
+            data:  rows.map(r => parseFloat(r[key]) || 0),
+          })),
+        }
+        set('chart_data', JSON.stringify(chartData, null, 2))
+        toast.success('CSV imported')
+      },
+      error: () => toast.error('Failed to parse CSV'),
+    })
+  }
+
+  return (
+    <div className={styles.yearEntry}>
+      <div className={styles.yearEntryHeader}>
+        <div className={styles.yearEntryTitle}>
+          <span className={styles.yearBadge}>{entry.year || 'Year'}</span>
+          <span className={styles.yearEntryLabel}>Data Entry</span>
+        </div>
+        {!isOnly && (
+          <button
+            type="button"
+            className={styles.removeYearBtn}
+            onClick={() => onRemove(index)}
+            title="Remove this year"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+
+      {/* Year number */}
+      <div className={styles.field}>
+        <label className={styles.label}>Year *</label>
+        <input
+          className={styles.input}
+          type="number"
+          min="1900"
+          max="2100"
+          value={entry.year}
+          onChange={e => set('year', e.target.value)}
+          placeholder={CURRENT_YEAR.toString()}
+          required
+        />
+      </div>
+
+      {/* CSV import for this year */}
+      <div className={styles.field}>
+        <label className={styles.label}>Import CSV <span className={styles.labelHint}>(optional)</span></label>
+        <label className={styles.fileZone}>
+          <Upload size={16} style={{ color: 'var(--text-muted)' }} />
+          <p className={styles.fileZoneText}>Click to upload CSV — auto-converts to JSON</p>
+          <input type="file" accept=".csv" onChange={handleCSV} style={{ display: 'none' }} />
+        </label>
+      </div>
+
+      {/* Chart data JSON */}
+      <div className={styles.field}>
+        <label className={styles.label}>Chart Data JSON *</label>
+        <textarea
+          className={`${styles.textarea} ${styles.codeArea}`}
+          value={entry.chart_data}
+          onChange={e => set('chart_data', e.target.value)}
+          spellCheck={false}
+          placeholder={SAMPLE_JSON}
+          required
+        />
+        <p className={styles.jsonHelper}>
+          Format: <code>{"{ labels: [...], datasets: [{ label, data: [...] }] }"}</code>
+        </p>
+      </div>
+
+      {/* Rich text description for this year */}
+      <div className={styles.field}>
+        <label className={styles.label}>
+          Description for {entry.year || 'this year'}
+          <span className={styles.labelHint}> (rich text — shown below the chart when this year is selected)</span>
+        </label>
+        <RichTextEditor
+          value={entry.body}
+          onChange={val => set('body', val)}
+          placeholder={`Write analysis, key findings, or notes for ${entry.year || 'this year'}...`}
+        />
+      </div>
+    </div>
+  )
+}
+
+export default function AdminDatasetForm() {
+  const { id }      = useParams()
+  const navigate    = useNavigate()
+  const isEdit      = !!id
+
+  const [loading, setLoading]           = useState(false)
   const [fetchingEdit, setFetchingEdit] = useState(isEdit)
-  const [tagInput, setTagInput] = useState('')
+  const [tagInput, setTagInput]         = useState('')
 
   const [form, setForm] = useState({
-    title: '',
+    title:       '',
     description: '',
-    slug: '',
-    chart_type: 'bar',
-    chart_data: SAMPLE_JSON,
-    tags: [],
+    slug:        '',
+    chart_type:  'bar',
+    tags:        [],
   })
+
+  // Multi-year entries: [{ year, chart_data, body }, ...]
+  const [yearEntries, setYearEntries] = useState([
+    { year: CURRENT_YEAR.toString(), chart_data: SAMPLE_JSON, body: '' }
+  ])
 
   useEffect(() => {
     if (!isEdit) return
     supabase.from('datasets').select('*').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
-          title: data.title || '',
+          title:      data.title || '',
           description: data.description || '',
-          slug: data.slug || '',
+          slug:       data.slug || '',
           chart_type: data.chart_type || 'bar',
-          chart_data: typeof data.chart_data === 'string'
-            ? data.chart_data
-            : JSON.stringify(data.chart_data, null, 2),
-          tags: data.tags || [],
+          tags:       data.tags || [],
         })
+
+        // Load year entries from years_data
+        if (data.years_data && Object.keys(data.years_data).length > 0) {
+          const entries = Object.entries(data.years_data)
+            .sort(([a], [b]) => b - a)
+            .map(([year, val]) => ({
+              year,
+              chart_data: typeof val.chart_data === 'string'
+                ? val.chart_data
+                : JSON.stringify(val.chart_data, null, 2),
+              body: val.body || '',
+            }))
+          setYearEntries(entries)
+        } else if (data.chart_data) {
+          // Legacy single dataset — migrate to year entry
+          setYearEntries([{
+            year: data.year?.toString() || CURRENT_YEAR.toString(),
+            chart_data: typeof data.chart_data === 'string'
+              ? data.chart_data
+              : JSON.stringify(data.chart_data, null, 2),
+            body: data.body || '',
+          }])
+        }
       }
       setFetchingEdit(false)
     })
@@ -64,66 +194,73 @@ export default function AdminDatasetForm() {
 
   const addTag = () => {
     const t = tagInput.trim().toLowerCase()
-    if (t && !form.tags.includes(t)) {
-      set('tags', [...form.tags, t])
-    }
+    if (t && !form.tags.includes(t)) set('tags', [...form.tags, t])
     setTagInput('')
   }
 
   const removeTag = (tag) => set('tags', form.tags.filter(t => t !== tag))
 
-  const handleCSV = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    Papa.parse(file, {
-      header: true,
-      complete: (results) => {
-        const rows = results.data.filter(r => Object.values(r).some(Boolean))
-        const headers = results.meta.fields || []
-        const labelKey = headers[0]
-        const dataKeys = headers.slice(1)
-        const chartData = {
-          labels: rows.map(r => r[labelKey]),
-          datasets: dataKeys.map(key => ({
-            label: key,
-            data: rows.map(r => parseFloat(r[key]) || 0),
-          })),
-        }
-        set('chart_data', JSON.stringify(chartData, null, 2))
-        toast.success('CSV imported successfully')
-      },
-      error: () => toast.error('Failed to parse CSV'),
-    })
+  const addYearEntry = () => {
+    const existingYears = yearEntries.map(e => parseInt(e.year)).filter(Boolean)
+    const latestYear    = existingYears.length > 0 ? Math.max(...existingYears) : CURRENT_YEAR
+    setYearEntries(prev => [
+      { year: (latestYear + 1).toString(), chart_data: SAMPLE_JSON, body: '' },
+      ...prev,
+    ])
   }
 
-  const validateJSON = () => {
-    try {
-      JSON.parse(form.chart_data)
-      return true
-    } catch {
-      toast.error('Invalid JSON in chart data')
-      return false
+  const updateYearEntry = (index, updated) => {
+    setYearEntries(prev => prev.map((e, i) => i === index ? updated : e))
+  }
+
+  const removeYearEntry = (index) => {
+    setYearEntries(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const validateEntries = () => {
+    for (const entry of yearEntries) {
+      if (!entry.year) { toast.error('Each year entry needs a year number'); return false }
+      try { JSON.parse(entry.chart_data) }
+      catch { toast.error(`Invalid JSON in ${entry.year} chart data`); return false }
     }
+    return true
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validateJSON()) return
+    if (!validateEntries()) return
     setLoading(true)
+
     try {
+      // Build years_data object
+      const years_data = {}
+      yearEntries.forEach(entry => {
+        if (entry.year) {
+          years_data[entry.year] = {
+            chart_data: JSON.parse(entry.chart_data),
+            body: entry.body || '',
+          }
+        }
+      })
+
+      // Default chart_data = latest year's data
+      const sortedYears   = Object.keys(years_data).sort((a, b) => b - a)
+      const latestYear    = sortedYears[0]
+      const defaultChartData = latestYear ? years_data[latestYear].chart_data : {}
+      const defaultBody      = latestYear ? years_data[latestYear].body : ''
+      const defaultYear      = latestYear ? parseInt(latestYear) : null
+
       const payload = {
-        body: form.body,
         ...form,
-        chart_data: JSON.parse(form.chart_data),
-        slug: form.slug || slugify(form.title),
+        slug:       form.slug || slugify(form.title),
+        chart_data: defaultChartData,
+        body:       defaultBody,
+        year:       defaultYear,
+        years_data,
       }
-      if (isEdit) {
-        await updateDataset(id, payload)
-        toast.success('Dataset updated!')
-      } else {
-        await createDataset(payload)
-        toast.success('Dataset created!')
-      }
+
+      if (isEdit) { await updateDataset(id, payload); toast.success('Dataset updated!') }
+      else        { await createDataset(payload);      toast.success('Dataset created!') }
       navigate('/admin/datasets')
     } catch (err) {
       toast.error(err.message || 'Something went wrong')
@@ -132,7 +269,11 @@ export default function AdminDatasetForm() {
     }
   }
 
-  if (fetchingEdit) return <div className={styles.page}><div className={`skeleton ${styles.pageSkeleton}`} style={{ height: 400 }} /></div>
+  if (fetchingEdit) return (
+    <div className={styles.page}>
+      <div className="skeleton" style={{ height: 400, borderRadius: 10 }} />
+    </div>
+  )
 
   return (
     <div className={styles.page}>
@@ -147,31 +288,29 @@ export default function AdminDatasetForm() {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
+
         {/* Basic info */}
         <div className={styles.formCard}>
           <p className={styles.formSection}>Basic Information</p>
-
           <div className={styles.field}>
             <label className={styles.label}>Title *</label>
             <input
               className={styles.input}
               value={form.title}
               onChange={e => handleTitleChange(e.target.value)}
-              placeholder="e.g. Global CO₂ Emissions 2020–2024"
+              placeholder="e.g. Global CO₂ Emissions"
               required
             />
           </div>
-
           <div className={styles.field}>
-            <label className={styles.label}>Description</label>
+            <label className={styles.label}>Short Description <span className={styles.labelHint}>(shown in cards)</span></label>
             <textarea
               className={styles.textarea}
               value={form.description}
               onChange={e => set('description', e.target.value)}
-              placeholder="Brief description of what this dataset shows..."
+              placeholder="Brief summary shown on listing cards..."
             />
           </div>
-
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>Slug <span className={styles.labelHint}>(auto-generated)</span></label>
@@ -210,9 +349,7 @@ export default function AdminDatasetForm() {
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
                 placeholder="Type a tag and press Enter"
               />
-              <button type="button" className={styles.addTagBtn} onClick={addTag}>
-                Add
-              </button>
+              <button type="button" className={styles.addTagBtn} onClick={addTag}>Add</button>
             </div>
             {form.tags.length > 0 && (
               <div className={styles.tagList}>
@@ -227,56 +364,49 @@ export default function AdminDatasetForm() {
           </div>
         </div>
 
-        {/* Chart data */}
+        {/* Year data entries */}
         <div className={styles.formCard}>
-          <p className={styles.formSection}>Chart Data</p>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Import from CSV <span className={styles.labelHint}>(optional — auto-converts to JSON)</span></label>
-            <label className={styles.fileZone}>
-              <Upload size={20} style={{ color: 'var(--text-muted)' }} />
-              <p className={styles.fileZoneText}>Click to upload a CSV file</p>
-              <input type="file" accept=".csv" onChange={handleCSV} style={{ display: 'none' }} />
-            </label>
+          <div className={styles.yearsHeader}>
+            <div>
+              <p className={styles.formSection} style={{ margin: 0 }}>Data by Year</p>
+              <p className={styles.yearsSub}>
+                Each year has its own chart data and description.
+                The latest year is shown by default on the public page.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.addYearBtn}
+              onClick={addYearEntry}
+            >
+              <Plus size={13} /> Add Year
+            </button>
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Chart Data JSON *</label>
-            <textarea
-              className={`${styles.textarea} ${styles.codeArea}`}
-              value={form.chart_data}
-              onChange={e => set('chart_data', e.target.value)}
-              spellCheck={false}
-              required
-            />
-            <p className={styles.jsonHelper}>
-              Must follow Chart.js format: <code>{"{ labels: [...], datasets: [{ label, data: [...] }] }"}</code>
-            </p>
-          </div>
-        </div>
-        <div className={styles.formCard}>
-          <p className={styles.formSection}>
-            Detailed Description
-            <span className={styles.labelHint}> — shown below the chart on the dataset page</span>
-          </p>
-          <div className={styles.field}>
-            <label className={styles.label}>
-              Body Content
-              <span className={styles.labelHint}>(rich text, supports formatting + links)</span>
-              </label>
-              <RichTextEditor
-                value={form.body}                
-                onChange={val => set('body', val)}     placeholder="Write a detailed description, methodology, data sources, key findings..."
+          <div className={styles.yearEntriesList}>
+            {yearEntries.map((entry, index) => (
+              <YearEntry
+                key={index}
+                entry={entry}
+                index={index}
+                onUpdate={updateYearEntry}
+                onRemove={removeYearEntry}
+                isOnly={yearEntries.length === 1}
               />
+            ))}
           </div>
         </div>
 
         <div className={styles.actions}>
           <Link to="/admin/datasets" className={styles.cancelBtn}>Cancel</Link>
           <button type="submit" className={styles.submitBtn} disabled={loading}>
-            {loading ? <span className={styles.btnSpinner} /> : isEdit ? 'Save Changes' : 'Create Dataset'}
+            {loading
+              ? <span className={styles.btnSpinner} />
+              : isEdit ? 'Save Changes' : 'Create Dataset'
+            }
           </button>
         </div>
+
       </form>
     </div>
   )
